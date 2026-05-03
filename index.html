@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>Controle de Estoque</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div>
+        <h1>Controle de Estoque</h1>
+        <p id="headerStatus">Carregando base da planilha...</p>
+      </div>
+      <button class="header-btn" id="btnReload" type="button">Atualizar</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="systemAlert"></div>
+
+    <section class="stats" id="stats"></section>
+
+    <section id="telaEstoque" class="screen active">
+      <div class="toolbar">
+        <input id="searchStock" class="field" type="search" placeholder="Buscar por código, produto ou setor..." autocomplete="off" />
+        <select id="sectorFilter" class="field"></select>
+      </div>
+
+      <div class="chips">
+        <button class="chip active" type="button" data-filter="todos">Tudo</button>
+        <button class="chip" type="button" data-filter="ok">OK</button>
+        <button class="chip" type="button" data-filter="baixo">Baixo</button>
+        <button class="chip" type="button" data-filter="zero">Zerado</button>
+        <button class="chip" type="button" data-filter="excesso">Acima do máx.</button>
+      </div>
+
+      <div id="stockList" class="list"></div>
+    </section>
+
+    <section id="telaMovimento" class="screen">
+      <div class="card">
+        <h2>Entrada e saída</h2>
+        <p class="hint">Use esta tela para lançar compra, consumo, perda, ajuste ou saída de produção. A quantidade será atualizada direto na aba BASE_SITE.</p>
+
+        <form id="movementForm" class="form">
+          <label for="movSearch">Buscar produto</label>
+          <input id="movSearch" class="field" type="search" placeholder="Digite para filtrar a lista..." autocomplete="off" />
+
+          <label for="movItem">Produto</label>
+          <select id="movItem" class="field" required></select>
+
+          <div class="two">
+            <div>
+              <label for="movType">Tipo</label>
+              <select id="movType" class="field" required>
+                <option value="entrada">Entrada</option>
+                <option value="saida">Saída</option>
+              </select>
+            </div>
+            <div>
+              <label for="movQty">Quantidade</label>
+              <input id="movQty" class="field" type="number" min="0" step="0.001" placeholder="0" required />
+            </div>
+          </div>
+
+          <label for="movNote">Observação</label>
+          <textarea id="movNote" class="field" placeholder="Ex.: compra, produção, perda, ajuste manual..."></textarea>
+
+          <button class="btn ok" type="submit">Salvar movimentação</button>
+          <div id="movMsg"></div>
+        </form>
+      </div>
+
+      <div class="card mt">
+        <h2>Últimas movimentações</h2>
+        <div id="historyList" class="list compact"></div>
+      </div>
+    </section>
+
+    <section id="telaNovo" class="screen">
+      <div class="card">
+        <h2>Adicionar novo item</h2>
+        <p class="hint">O novo produto será incluído no final da aba BASE_SITE e também registrado no histórico.</p>
+
+        <form id="addForm" class="form">
+          <div class="two">
+            <div>
+              <label for="newSetor">Setor</label>
+              <input id="newSetor" class="field" placeholder="Ex.: MERCADO" required />
+            </div>
+            <div>
+              <label for="newCodigo">Código</label>
+              <input id="newCodigo" class="field" placeholder="Ex.: MP999" />
+            </div>
+          </div>
+
+          <label for="newProduto">Produto</label>
+          <input id="newProduto" class="field" placeholder="Nome do produto" required />
+
+          <div class="three">
+            <div>
+              <label for="newQtd">Qtd inicial</label>
+              <input id="newQtd" class="field" type="number" min="0" step="0.001" value="0" />
+            </div>
+            <div>
+              <label for="newMin">Mínimo</label>
+              <input id="newMin" class="field" type="number" min="0" step="0.001" value="1" />
+            </div>
+            <div>
+              <label for="newMax">Máximo</label>
+              <input id="newMax" class="field" type="number" min="0" step="0.001" value="10" />
+            </div>
+          </div>
+
+          <div class="two">
+            <div>
+              <label for="newUnidade">Unidade</label>
+              <input id="newUnidade" class="field" placeholder="un, kg, pct..." value="un" />
+            </div>
+            <div>
+              <label for="newObs">Observação</label>
+              <input id="newObs" class="field" placeholder="Opcional" />
+            </div>
+          </div>
+
+          <button class="btn" type="submit">Cadastrar item</button>
+          <div id="addMsg"></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="telaCompras" class="screen">
+      <div class="card">
+        <h2>Lista de compras</h2>
+        <p class="hint">Itens zerados ou abaixo do mínimo. A sugestão de compra calcula quanto falta para chegar ao máximo.</p>
+        <button id="btnExportShopping" class="btn secondary" type="button">Exportar CSV</button>
+      </div>
+      <div id="shoppingList" class="list"></div>
+    </section>
+
+    <section id="telaConfig" class="screen">
+      <div class="card">
+        <h2>Configuração</h2>
+        <p class="hint">Para entrada, saída e cadastro funcionarem, cole a URL do Web App do Google Apps Script no arquivo <b>js/app.js</b>, na variável <b>API_URL</b>.</p>
+        <div class="codebox">const API_URL = 'COLE_AQUI_A_URL_DO_APPS_SCRIPT';</div>
+      </div>
+
+      <div class="card mt">
+        <h2>Base esperada</h2>
+        <p class="hint">A aba BASE_SITE precisa ter este cabeçalho:</p>
+        <div class="codebox">setor | codigo | produto | qtd | minimo | maximo | unidade | observacao</div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav active" type="button" data-screen="telaEstoque">Estoque</button>
+    <button class="nav" type="button" data-screen="telaMovimento">Entrada/Saída</button>
+    <button class="nav" type="button" data-screen="telaNovo">Novo</button>
+    <button class="nav" type="button" data-screen="telaCompras">Compras</button>
+    <button class="nav" type="button" data-screen="telaConfig">Config</button>
+  </nav>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
